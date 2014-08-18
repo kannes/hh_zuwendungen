@@ -1,18 +1,12 @@
-## durchgängige Fehler
+1. **alle:** Kapitel-Überschriften mit "Unterstreichung" aus Folgezeile vereint; z.B. so:
 
-Kapitel-Format:
+        -4-94--0---
 
-    4940
-    ----
+    statt
 
-wurde häufig als
+        4940
+        ----
 
-    -4-94--0---
+    Offenbar immer, wenn es erster Eintrag einer Seite ist. *Sollte beim weiteren Verarbeiten korrigierbar sein.*
 
-geparst. (Offenbar immer, wenn es erster Eintrag einer Seite ist.) *Sollte beim weiteren Verarbeiten korrigierbar sein.*
-
-## Fehler in einzelnen Dateien
-
-### tabula-einzelplan2.tsv
-
-letzte Seite, 3. Spalte als zwei Spalten interpretiert; Daten offenbar korrekt aber um eine Spalte nach rechts versetzt
+2. **in 1.1-1.8, 2.0, 8.1, 9.1:** 3. Spalte als zwei Spalten interpretiert; Daten offenbar korrekt aber um eine Spalte nach rechts versetzt; in den 1ern und 2.0 jeweils auf letzter Seite, in mind. 8.1 und 9.1 tritt dies mittendrin auf.

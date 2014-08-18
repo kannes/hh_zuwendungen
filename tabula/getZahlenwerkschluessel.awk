@@ -20,7 +20,7 @@ BEGIN {
 		text = $2;
 	}
 	if ( $1 ~ /""/ ) {
-		if ( $2 != "\"\"" ) text = text " " $2;
+		if ( $2 !~ /(""|----+|Titelgruppe)/ ) text = text " " $2;
 	}
 }
 END {
