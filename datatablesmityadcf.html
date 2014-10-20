@@ -37,6 +37,14 @@ $(document).ready(function() {
         bProcessing: true,
         //"responsive": true,
         //"bPaginate": false,
+        "formatNumber": function ( toFormat ) {
+    		return toFormat.toString().replace(
+    			/\B(?=(\d{3})+(?!\d))/g, "bbbbbbbbbbbbb"
+    		);
+    	},
+    	"language": {
+    		"thousands": "aaaaaaaaaa"
+    	},
         "columns": [
             { "data": "inez", "visible": false },
             { "data": "empfaenger" },
@@ -112,6 +120,7 @@ $(document).ready(function() {
     	}
     	console.log(gefiltertedaten);
     });
+    
 } );
 </script>
 
