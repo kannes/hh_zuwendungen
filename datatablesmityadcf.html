@@ -1,20 +1,24 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<link rel="stylesheet" type="text/css" href="DataTables-1.10.2/media/css/jquery.dataTables.css">
+	<link rel="stylesheet" type="text/css" href="datatables.css">
 	<script type="text/javascript" charset="utf8" src="DataTables-1.10.2/media/js/jquery.js"></script>
 	<script type="text/javascript" charset="utf8" src="jquery-ui-1.11.1/jquery-ui.js"></script>
 	<script type="text/javascript" charset="utf8" src="DataTables-1.10.2/media/js/jquery.dataTables.js"></script>
 	<script type="text/javascript" charset="utf8" src="yadcf-0.8.3/jquery.dataTables.yadcf.js"></script>
 	<link href="jquery-ui-1.11.1/jquery-ui.css" rel="stylesheet" type="text/css" />
-	<link href="yadcf-0.8.3/jquery.dataTables.yadcf.css" rel="stylesheet" type="text/css" />
+	<!--<link href="yadcf-0.8.3/jquery.dataTables.yadcf.css" rel="stylesheet" type="text/css" />-->
+	<script type="text/javascript" charset="utf8" src="Plugins/api/sum().js"></script>
+	<script type="text/javascript" charset="utf8" src="Plugins/api/average().js"></script>
+	<link href='http://fonts.googleapis.com/css?family=Droid+Sans:400,700' rel='stylesheet' type='text/css'>
 	<style type="text/css">
 		a.toggle-vis {color:lightblue; cursor: pointer; }
 		.alignRight {text-align:right;}
+		body {font-family: 'Droid Sans', sans-serif; font-size: 10pt;}
 	</style>
 </head>
 <body>
-<h1>Work in progress!</h1>
+<h1 id="titel">Work in progress!</h1>
 <!--
 http://www.datatables.net/examples/api/regex.html
 http://www.datatables.net/examples/api/show_hide.html
@@ -24,9 +28,10 @@ http://www.datatables.net/examples/basic_init/state_save.html
 -->
 <script>
 var table;
+var gefiltertedaten;
 
 $(document).ready(function() {
-    table = $('#example').DataTable( {
+    table = $('#unsereDataTable').DataTable( {
         "ajax": "jsonfordatatables.php",
         stateSave: true,
         bProcessing: true,
@@ -38,6 +43,7 @@ $(document).ready(function() {
             { "data": "behoerde" },
             { "data": "jahr" },
             { "data": "einzelplan" },
+            { "data": "einzelplan_stern" },
             { "data": "aob", "visible": false },
             { "data": "kapitel", "visible": false },
             { "data": "titel", "visible": false },
@@ -45,7 +51,7 @@ $(document).ready(function() {
             { "data": "haushaltstyp", "visible": false },
             { "data": "zuwendung" },
             { "data": "foerderungsart", "visible": false },
-            { "data": "gesamtzuwendung", sClass: "alignRight" }
+            { "data": "gesamtzuwendung", sClass: "alignRight gesamtzuwendung" }
         ]
     } );
     
@@ -65,7 +71,6 @@ $(document).ready(function() {
         column_number: 5,
     }, {
         column_number: 6,
-        filter_type: "text"
     }, {
         column_number: 7,
         filter_type: "text"
@@ -80,8 +85,11 @@ $(document).ready(function() {
         filter_type: "text"
     }, {
         column_number: 11,
+        filter_type: "text"
     }, {
         column_number: 12,
+    }, {
+        column_number: 13,
         filter_type: "none"
     }]);
     
@@ -91,6 +99,19 @@ $(document).ready(function() {
 		column.visible( ! column.visible() );
     } );
     
+    $('#unsereDataTable').on('draw.dt', function() {
+    	// wird gefeuert wenn die tabelle fertig gerendert wurde
+    	console.log("adasd");
+    	console.log($("#unsereDataTable").DataTable().column(".gesamtzuwendung").data().sum());
+    	$("#titel").text($("#unsereDataTable").DataTable().column(".gesamtzuwendung").data().sum());
+    	
+    	gefiltertedaten = [];
+    	laenge = $("#unsereDataTable").dataTable()._('tr', {"filter": "applied"}).length;
+    	for (var i=0; i<length; i++) {
+    		gefiltertedaten.push($("#unsereDataTable").dataTable()._('tr', {"filter": "applied"})[i]);
+    	}
+    	console.log(gefiltertedaten);
+    });
 } );
 </script>
 
@@ -101,17 +122,18 @@ $(document).ready(function() {
 	<a class="toggle-vis" data-column="2">Behörde</a>
 	<a class="toggle-vis" data-column="3">Jahr</a>
 	<a class="toggle-vis" data-column="4">Einzelplan</a>
-	<a class="toggle-vis" data-column="5">AOB</a>
-	<a class="toggle-vis" data-column="6">Kapitel</a>
-	<a class="toggle-vis" data-column="7">Titel</a>
-	<a class="toggle-vis" data-column="8">Zweckbestimmung</a>
-	<a class="toggle-vis" data-column="9">Haushaltstyp</a>
-	<a class="toggle-vis" data-column="10">Zuwendung</a>
-	<a class="toggle-vis" data-column="11">Förderungsart</a>
-	<a class="toggle-vis" data-column="12">Gesamtzuwendung</a>
+	<a class="toggle-vis" data-column="5">Einzelplan Sternchen</a>
+	<a class="toggle-vis" data-column="6">AOB</a>
+	<a class="toggle-vis" data-column="7">Kapitel</a>
+	<a class="toggle-vis" data-column="8">Titel</a>
+	<a class="toggle-vis" data-column="9">Zweckbestimmung</a>
+	<a class="toggle-vis" data-column="10">Haushaltstyp</a>
+	<a class="toggle-vis" data-column="11">Zuwendung</a>
+	<a class="toggle-vis" data-column="12">Förderungsart</a>
+	<a class="toggle-vis" data-column="13">Gesamtzuwendung</a>
 </div>
 
-<table id="example" class="display" cellspacing="0" width="100%">
+<table id="unsereDataTable" class="display" cellspacing="0" width="100%">
         <thead>
             <tr>
 				<th>INEZ</th>
@@ -119,6 +141,7 @@ $(document).ready(function() {
 				<th>Behörde</th>
 				<th>Jahr</th>
 				<th>Einzelplan</th>
+				<th>Einzelplan Sternchen</th>
 				<th>AOB</th>
 				<th>Kapitel</th>
 				<th>Titel</th>
@@ -137,6 +160,7 @@ $(document).ready(function() {
 				<th>Behörde</th>
 				<th>Jahr</th>
 				<th>Einzelplan</th>
+				<th>Einzelplan Sternchen</th>
 				<th>AOB</th>
 				<th>Kapitel</th>
 				<th>Titel</th>
