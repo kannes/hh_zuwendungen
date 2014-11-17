@@ -19,10 +19,15 @@
 	<style type="text/css">
 		a.toggle-vis {color:lightblue; cursor: pointer; }
 		.alignRight {text-align:right;}
+		.clipped {text-overflow: ellipsis; white-space: nowrap; overflow:hidden;}
 		body {font-family: 'Droid Sans', sans-serif; font-size: 10pt;}
-		table {font-size: 1em;}
+		table {font-size: 1em; width:100%; table-layout: fixed;}
 		#chart_empfänger {float:left;}
 		#chart_behörde {float:left;}
+		
+		/* wir können so die select boxen, die die breite der spalten vorgeben */
+		div#yadcf-filter-wrapper--unsereDataTable-4 { width: 100px;  overflow: hidden;	}
+		div#yadcf-filter-wrapper--unsereDataTable-4 select {width: 100px;} 
 	</style>
 </head>
 <body>
@@ -55,19 +60,15 @@ var chart_behoerde;
 
 $(document).ready(function() {
     table = $('#unsereDataTable').DataTable( {
+    	"search": { "regex": true },
         "ajax": "jsonfordatatables.php",
         stateSave: true,
         bProcessing: true,
         //"responsive": true,
         //"bPaginate": false,
-        "formatNumber": function ( toFormat ) {
-    		return toFormat.toString().replace(
-    			/\B(?=(\d{3})+(?!\d))/g, "wird leider nicht in der tabelle verwendet, nur im footer?!"
-    		);
-    	},
-    	"language": {
-    		"thousands": "geht garnicht"
-    	},
+        "fnFormatNumber": function ( toFormat ) {
+    		return toFormat.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    	},  	
         "columns": [
             { "data": "inez", "visible": false },
             { "data": "empfaenger" },
@@ -78,11 +79,18 @@ $(document).ready(function() {
             { "data": "aob", "visible": false },
             { "data": "kapitel", "visible": false },
             { "data": "titel", "visible": false },
-            { "data": "zweckbestimmung" },
+            { "data": "zweckbestimmung", "sClass": "clipped" },
             { "data": "haushaltstyp", "visible": false },
             { "data": "zuwendung" },
             { "data": "foerderungsart", "visible": false },
-            { "data": "gesamtzuwendung", sClass: "alignRight gesamtzuwendung" }
+            { "data": "gesamtzuwendung", 
+            	"sClass": "alignRight gesamtzuwendung", 
+            	"mRender": function (data) {
+            		return data.toString()
+            		.replace(/\./g,",")
+            		.replace(/\B(?=(\d{3})+(?!\d))/g, ".")+" €"; 
+            	} 
+            }
         ]
     } );
     
@@ -178,8 +186,13 @@ function updateStatistics() {
 	var average = (sum/count).toFixed(2);
 	$('#span_average').text(average);
 	
-	var median = parseFloat(selectedrecords[Math.round(count/2)].gesamtzuwendung).toFixed(2);
-	$('#span_median').text(median);
+	arraydersummen = [];
+	for (var i = 0; i < count; i++) {
+		arraydersummen.push(selectedrecords[i].gesamtzuwendung);
+	}
+	//var median = parseFloat(selectedrecords[Math.round(count/2)].gesamtzuwendung).toFixed(2);
+	dermedian = median(arraydersummen);
+	$('#span_median').text(dermedian);
 	
 	// warum auch immer selectedrecords "circular" sein soll... hiermit mache ich einen normalen array draus
 	dimpledata = [];
@@ -198,6 +211,19 @@ function updateStatistics() {
 	
 	series_behoerde.data = dimpledata;
 	chart_behoerde.draw();
+}
+
+// von http://caseyjustus.com/finding-the-median-of-an-array-with-javascript
+function median(values) {
+ 
+    values.sort( function(a,b) {return a - b;} );
+ 
+    var half = Math.floor(values.length/2);
+ 
+    if(values.length % 2)
+        return values[half];
+    else
+        return (values[half-1] + values[half]) / 2.0;
 }
 </script>
 
