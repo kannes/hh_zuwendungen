@@ -1,0 +1,151 @@
+<html>
+<head>
+	<meta charset="utf-8">
+	<link rel="stylesheet" type="text/css" href="jquery-dynatable/jquery.dynatable.css">
+	<script type="text/javascript" charset="utf8" src="jquery-dynatable/vendor/jquery-1.7.2.min.js"></script>
+	<script type="text/javascript" charset="utf8" src="jquery-dynatable/jquery.dynatable.js"></script>
+	<style type="text/css">
+		body {font-family: Droid Sans, sans-serif;}
+		table {font-size: 0.75em; }
+		a.toggle-vis {color:lightblue; cursor: pointer; }
+	</style>
+</head>
+<body>
+<div id="statistics">
+	Anzahl der Auswahl: <span id="span_count"></span> |
+	Summe der Auswahl: <span id="span_sum"></span> |
+	Durchschnittswert der Auswahl: <span id="span_average"></span> |
+	Median der Auswahl: <span id="span_median"></span>
+</div>
+
+<div>
+	Spalten an-/ausschalten: 
+	javascript:$('th:contains("Empfänger")').hide();
+	<a class="toggle-vis" data-column="0">INEZ</a>
+	<a class="toggle-vis" data-column="1">Empfänger</a>
+	<a class="toggle-vis" data-column="2">Behörde</a>
+	<a class="toggle-vis" data-column="3">Von</a>
+	<a class="toggle-vis" data-column="4">Bis</a>
+	<a class="toggle-vis" data-column="5">Einzelplan</a>
+	<a class="toggle-vis" data-column="6">AOB</a>
+	<a class="toggle-vis" data-column="7">Kapitel</a>
+	<a class="toggle-vis" data-column="8">Titel</a>
+	<a class="toggle-vis" data-column="9">Haushaltstyp</a>
+	<a class="toggle-vis" data-column="10">Zuwendung</a>
+	<a class="toggle-vis" data-column="11">Förderungsart</a>
+	<a class="toggle-vis" data-column="12">Gesamtzuwendung</a>
+</div>
+
+<table id="zuwendungen" class="display" cellspacing="0" width="100%">
+        <thead>
+            <tr>
+				<th>INEZ</th>
+				<th>Empfänger</th>
+				<th>Behörde</th>
+				<th>Jahr</th>
+				<th>Einzelplan</th>
+				<th>AOB</th>
+				<th>Kapitel</th>
+				<th>Titel</th>
+				<th>Haushaltstyp</th>
+				<th>Zuwendung</th>
+				<th>Zweckbestimmung</th>
+				<th>Förderungsart</th>
+				<th>Gesamtzuwendung</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+            <tr>
+				<th>INEZ</th>
+				<th>Empfänger</th>
+				<th>Behörde</th>
+				<th>Jahr</th>
+				<th>Einzelplan</th>
+				<th>AOB</th>
+				<th>Kapitel</th>
+				<th>Titel</th>
+				<th>Haushaltstyp</th>
+				<th>Zuwendung</th>
+				<th>Zweckbestimmung</th>
+				<th>Förderungsart</th>
+				<th>Gesamtzuwendung</th>
+            </tr>
+        </tfoot>        
+    </table>
+
+Wenn Pagination an ist, dann gibt table.data().dynatable.records.count() bzw table.data().dynatable.records.getFromTable() leider nur die Daten der aktuelle Seite aus.
+Daher habe ich es ausgemacht (mein armes Netbook...).
+
+Filtern nach INEZ geht nicht?! Titel auch nicht. gesamtzuwendung dito
+
+<h1>Wir wollen doch auch regex und sowas... :( </h1>
+<script>
+
+var table = $('#zuwendungen');
+$.ajax({
+  url: 'jsonfordynatable.php',
+  success: function(data){
+  //console.log(data);
+    table.dynatable({
+      dataset: {
+        records: data,
+        
+      },
+      features: {
+        paginate: false
+        }
+    })
+    .bind('dynatable:afterProcess', updateStatistics)
+    ;
+    updateStatistics();
+  }
+});
+
+
+
+
+function updateStatistics() {
+	// TODO scheisse langsam...
+
+	count = table.data().dynatable.records.count();
+	$('#span_count').text(count); 
+	
+	selectedrecords = table.data().dynatable.records.getFromTable();
+	
+	sum = 0;
+	// sind so ziemlich gleichschnell, also lieber ohne jquery...
+	//$.each(selectedrecords, function(index, value) {
+	//	sum += parseFloat(value.gesamtzuwendung);
+	//});
+	for (var i = 0; i < count; i++) {
+		sum += parseFloat(selectedrecords[i].gesamtzuwendung);
+	}
+	sum = sum.toFixed(2);
+	$('#span_sum').text(sum);
+	
+	average = (sum/count).toFixed(2);
+	$('#span_average').text(average);
+	
+	median = parseFloat(selectedrecords[Math.round(count/2)].gesamtzuwendung).toFixed(2);
+	$('#span_median').text(median);
+}
+
+
+
+/* //hiermit sendet es ajax request, macht kein lokales filtern etc!
+$('#zuwendungen').dynatable({
+  dataset: {
+    ajax: true,
+    ajaxUrl: 'jsonfordynatable.php',
+    ajaxOnLoad: true,
+    records: []
+  }
+});
+*/
+
+
+</script>
+
+</body>
+</html>

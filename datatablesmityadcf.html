@@ -7,14 +7,22 @@
 	<script type="text/javascript" charset="utf8" src="DataTables-1.10.2/media/js/jquery.dataTables.js"></script>
 	<script type="text/javascript" charset="utf8" src="yadcf-0.8.3/jquery.dataTables.yadcf.js"></script>
 	<link href="jquery-ui-1.11.1/jquery-ui.css" rel="stylesheet" type="text/css" />
-	<!--<link href="yadcf-0.8.3/jquery.dataTables.yadcf.css" rel="stylesheet" type="text/css" />-->
+	<!--<link href="yadcf-0.8.3/jquery.dataTables.yadcf.css" rel="stylesheet" type="text/css" />
 	<script type="text/javascript" charset="utf8" src="Plugins/api/sum().js"></script>
-	<script type="text/javascript" charset="utf8" src="Plugins/api/average().js"></script>
+	<script type="text/javascript" charset="utf8" src="Plugins/api/average().js"></script>-->
+	
+	
+	<script src="d3/d3.js" charset="utf-8"></script>
+	<script src="http://dimplejs.org/dist/dimple.v2.1.0.min.js"></script> <!-- todo -->
+
 	<link href='http://fonts.googleapis.com/css?family=Droid+Sans:400,700' rel='stylesheet' type='text/css'>
 	<style type="text/css">
 		a.toggle-vis {color:lightblue; cursor: pointer; }
 		.alignRight {text-align:right;}
 		body {font-family: 'Droid Sans', sans-serif; font-size: 10pt;}
+		table {font-size: 1em;}
+		#chart_empfänger {float:left;}
+		#chart_behörde {float:left;}
 	</style>
 </head>
 <body>
@@ -26,9 +34,24 @@ http://www.datatables.net/examples/basic_init/state_save.html
 
 
 -->
+<div id="statistics">
+	Anzahl der Auswahl: <span id="span_count"></span> |
+	Summe der Auswahl: <span id="span_sum"></span> |
+	Durchschnittswert der Auswahl: <span id="span_average"></span> |
+	Median der Auswahl: <span id="span_median"></span>
+</div>
+
+<div id="charts">
+<div id="chart_behörde"></div>
+<div id="chart_empfänger"></div>
+</div>
+<div style="clear:both;"></div>
+
 <script>
 var table;
 var gefiltertedaten;
+var selectedrecords;
+var chart_behoerde;
 
 $(document).ready(function() {
     table = $('#unsereDataTable').DataTable( {
@@ -39,11 +62,11 @@ $(document).ready(function() {
         //"bPaginate": false,
         "formatNumber": function ( toFormat ) {
     		return toFormat.toString().replace(
-    			/\B(?=(\d{3})+(?!\d))/g, "bbbbbbbbbbbbb"
+    			/\B(?=(\d{3})+(?!\d))/g, "wird leider nicht in der tabelle verwendet, nur im footer?!"
     		);
     	},
     	"language": {
-    		"thousands": "aaaaaaaaaa"
+    		"thousands": "geht garnicht"
     	},
         "columns": [
             { "data": "inez", "visible": false },
@@ -109,19 +132,73 @@ $(document).ready(function() {
     
     $('#unsereDataTable').on('draw.dt', function() {
     	// wird gefeuert wenn die tabelle fertig gerendert wurde
-    	console.log("adasd");
-    	console.log($("#unsereDataTable").DataTable().column(".gesamtzuwendung").data().sum());
-    	$("#titel").text($("#unsereDataTable").DataTable().column(".gesamtzuwendung").data().sum());
+    	//console.log("draw.dt");
     	
-    	gefiltertedaten = [];
-    	laenge = $("#unsereDataTable").dataTable()._('tr', {"filter": "applied"}).length;
-    	for (var i=0; i<length; i++) {
-    		gefiltertedaten.push($("#unsereDataTable").dataTable()._('tr', {"filter": "applied"})[i]);
-    	}
-    	console.log(gefiltertedaten);
+    	//$("#titel").text($("#unsereDataTable").DataTable().column(".gesamtzuwendung").data().sum());
+    	
+    	
+    	selectedrecords = $("#unsereDataTable").dataTable()._('tr', {"filter": "applied"});
+    	updateStatistics();
     });
     
+    var svg_behoerde = dimple.newSvg("#chart_behörde", 250, 400);
+    chart_behoerde = new dimple.chart(svg_behoerde);
+    chart_behoerde.setBounds(20, 20, 200, 200)
+    chart_behoerde.addMeasureAxis("p", "gesamtzuwendung");
+    series_behoerde = chart_behoerde.addSeries("behoerde", dimple.plot.pie);
+    chart_behoerde.addLegend(20, 210, 0, 100, "left");
+    
+    var svg_empfaenger = dimple.newSvg("#chart_empfänger", 700, 400);
+    chart_empfaenger = new dimple.chart(svg_empfaenger);
+    chart_empfaenger.setBounds(20, 20, 300, 300)
+    chart_empfaenger.addMeasureAxis("p", "gesamtzuwendung");
+    series_empfaenger = chart_empfaenger.addSeries("empfaenger", dimple.plot.pie);
+    chart_empfaenger.addLegend(180, 20, 90, 150, "left");
+    
+    updateStatistics();
 } );
+
+function updateStatistics() {
+	var count = $("#unsereDataTable").dataTable()._('tr', {"filter": "applied"}).length;
+	$('#span_count').text(count); 
+	
+	//var selectedrecords = $("#unsereDataTable").dataTable()._('tr', {"filter": "applied"});
+	
+	var sum = 0;
+	// sind so ziemlich gleichschnell, also lieber ohne jquery...
+	//$.each(selectedrecords, function(index, value) {
+	//	sum += parseFloat(value.gesamtzuwendung);
+	//});
+	for (var i = 0; i < count; i++) {
+		sum += parseFloat(selectedrecords[i].gesamtzuwendung);
+	}
+	sum = sum.toFixed(2);
+	$('#span_sum').text(sum);
+	
+	var average = (sum/count).toFixed(2);
+	$('#span_average').text(average);
+	
+	var median = parseFloat(selectedrecords[Math.round(count/2)].gesamtzuwendung).toFixed(2);
+	$('#span_median').text(median);
+	
+	// warum auch immer selectedrecords "circular" sein soll... hiermit mache ich einen normalen array draus
+	dimpledata = [];
+	for (var i = 0; i < count; i++) {
+		dimpledata.push(selectedrecords[i]);
+	}
+	
+	// ich habe einmal den fehler gemacht, eine piechart aller empfaenger zu machen (bzw chromium zu crashen)
+	if (count < 100) {
+		series_empfaenger.data = dimpledata;
+	} else {
+		series_empfaenger.data = '';
+		console.log("mehr als 100 datensätze, keine empfaenger chart");
+	}
+	chart_empfaenger.draw();
+	
+	series_behoerde.data = dimpledata;
+	chart_behoerde.draw();
+}
 </script>
 
 <div>

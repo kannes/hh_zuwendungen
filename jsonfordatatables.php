@@ -9,6 +9,7 @@ $sth = $dbh->prepare("SELECT inez, empfaenger, behoerde, substr(von, -4) AS jahr
 	LEFT JOIN aob ON z.aob=aob.id 
 	LEFT JOIN einzelplaene ON z.einzelplan = einzelplaene.id 
 	LEFT JOIN kapiteltitel ON z.kapitel=kapiteltitel.kapitel AND z.titel=kapiteltitel.titel
+	limit 100
 	;");
 $sth->execute();
 
